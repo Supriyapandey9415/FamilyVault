@@ -1,0 +1,64 @@
+server:
+  port: ${PORT:8080}
+  address: ${SERVER_ADDRESS:127.0.0.1}
+
+app:
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:5174}
+  storage:
+    type: ${FILE_STORAGE_TYPE:local}
+    root: ${FILE_STORAGE_ROOT:uploads}
+  platform-admin-emails: ${PLATFORM_ADMIN_EMAILS:}
+  secrets:
+    encryption-key: ${SMTP_CONFIG_ENCRYPTION_KEY:}
+  auth-cookie:
+    secure: ${AUTH_COOKIE_SECURE:false}
+    same-site: ${AUTH_COOKIE_SAME_SITE:Lax}
+
+application:
+  security:
+    jwt:
+      secret-key: ${JWT_SECRET_KEY}
+      expiration: ${JWT_EXPIRATION_MS:3600000}
+      vault-expiration: ${VAULT_TOKEN_EXPIRATION_MS:600000}
+    oauth2:
+      google:
+        client-id: ${GOOGLE_CLIENT_ID:}
+      apple:
+        enabled: ${APPLE_SIGN_IN_ENABLED:false}
+        client-id: ${APPLE_CLIENT_ID:}
+        team-id: ${APPLE_TEAM_ID:}
+        key-id: ${APPLE_KEY_ID:}
+        private-key-path: ${APPLE_PRIVATE_KEY_PATH:}
+        private-key-base64: ${APPLE_PRIVATE_KEY_BASE64:}
+        redirect-uri: ${APPLE_REDIRECT_URI:}
+
+spring:
+  application:
+    name: FamilyVault
+  servlet:
+    multipart:
+      max-file-size: 30MB
+      max-request-size: 30MB
+  datasource:
+    url: jdbc:mysql://${DB_HOST:127.0.0.1}:${DB_PORT:3306}/${DB_NAME:familyvault}?sslMode=REQUIRED&allowPublicKeyRetrieval=false&serverTimezone=UTC
+    username: ${DB_USERNAME:familyvault_app}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.dialect.MySQLDialect
+  flyway:
+    enabled: true
+    user: ${DB_MIGRATION_USERNAME:${DB_USERNAME:familyvault_app}}
+    password: ${DB_MIGRATION_PASSWORD:${DB_PASSWORD}}
+    baseline-on-migrate: true
+    baseline-version: 1
+    locations: classpath:db/migration

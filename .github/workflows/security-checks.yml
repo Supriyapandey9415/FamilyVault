@@ -1,0 +1,39 @@
+name: Build and security checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Check publishable files for secrets and private artifacts
+        shell: pwsh
+        run: ./scripts/Test-PublishSafety.ps1
+      - name: Backend security regression tests and package
+        run: mvn --batch-mode --no-transfer-progress -Ddebug=false verify
+      - name: Backend dependency advisory audit
+        shell: pwsh
+        run: ./scripts/Test-BackendDependencies.ps1
+      - name: Install locked frontend dependencies without lifecycle scripts
+        working-directory: familyvault-ui
+        run: npm ci --ignore-scripts
+      - name: Frontend dependency audit including build tools
+        working-directory: familyvault-ui
+        run: npm audit --audit-level=high
+      - name: Frontend regression tests, lint and build
+        working-directory: familyvault-ui
+        run: npm test && npm run lint && npm run build
